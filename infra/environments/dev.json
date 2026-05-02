@@ -1,9 +1,11 @@
 {
   "variables": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://your-project.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "replace-with-public-anon-key",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://kioycqthyfvsurpciyhp.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "replace-with-dev-public-anon-key",
     "APP_URL": "http://localhost:3001",
     "NODE_ENV": "development",
-    "SUPABASE_SERVICE_ROLE_KEY": "server-only-placeholder-do-not-commit-real-secret"
+    "SUPABASE_PROJECT_REF": "kioycqthyfvsurpciyhp",
+    "SUPABASE_ENV": "dev",
+    "SUPABASE_SERVICE_ROLE_KEY": "placeholder-server-only-do-not-commit-real-secret"
   }
 }

@@ -7,7 +7,8 @@ type EnvConfig = {
 
 const env = process.argv[2] ?? "dev";
 const source = join(process.cwd(), "infra", "environments", `${env}.json`);
-const target = join(process.cwd(), ".env.local.example");
+const targetName = env === "dev" ? ".env.dev.example" : `.env.${env}.example`;
+const target = join(process.cwd(), targetName);
 const required = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "APP_URL", "NODE_ENV"];
 
 if (!existsSync(source)) {
