@@ -58,7 +58,7 @@ export default function RegisterForm() {
       <p className="text-center text-sm text-ink/65">
         Déjà inscrit ?{" "}
         <Link href="/login" className="font-semibold text-leaf">
-          Se connecter
+          S’identifier
         </Link>
       </p>
     </form>

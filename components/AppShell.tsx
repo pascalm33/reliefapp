@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import type { Checkin, Profile } from "@/types";
 import BottomNavigation from "@/components/BottomNavigation";
 import UserMenu from "@/components/UserMenu";
+import StressReliefLogo from "@/components/public/StressReliefLogo";
 
 export default function AppShell({
   children,
@@ -35,7 +36,7 @@ export default function AppShell({
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-24 pt-5 sm:px-6">
       <header className="mb-5 flex items-center justify-between gap-3">
         <Link href="/app/dashboard" className="leading-tight">
-          <p className="text-2xl font-semibold tracking-normal text-ink">Relief</p>
+          <StressReliefLogo compact />
           <p className="text-xs text-ink/60">Observer. Agir. Soulager.</p>
         </Link>
         <UserMenu email={email} />
@@ -45,7 +46,7 @@ export default function AppShell({
       ) : null}
       {showReminder ? (
         <Link href="/app/checkin" className="mb-4 rounded-2xl bg-amber/15 px-4 py-3 text-sm font-semibold text-ink">
-          Tu n’as pas encore fait ton check-in Relief aujourd’hui.
+          Tu n’as pas encore fait ton check-in Stress Relief aujourd’hui.
         </Link>
       ) : null}
       <main className="flex-1">{children}</main>

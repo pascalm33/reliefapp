@@ -20,7 +20,7 @@ export default function ReminderSettings({ profile }: { profile: Profile }) {
     if (settings.enabled && "Notification" in window) {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
-        new Notification("C’est l’heure de ton check-in Relief");
+        new Notification("C’est l’heure de ton check-in Stress Relief");
         setStatus("Notifications activées. Le rappel est aussi affiché dans l’app.");
         return;
       }
