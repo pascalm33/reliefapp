@@ -1,22 +1,8 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { buildDailyReport } from "@/lib/reports";
-import { getActionForCheckin, getCheckins } from "@/lib/storage";
-import { toDateKey } from "@/lib/dates";
 import type { ActionSession, Checkin } from "@/types";
 
-export default function DailyReport() {
-  const [checkin, setCheckin] = useState<Checkin | undefined>();
-  const [action, setAction] = useState<ActionSession | undefined>();
-
-  useEffect(() => {
-    const today = getCheckins().find((item) => item.date === toDateKey()) ?? getCheckins()[0];
-    setCheckin(today);
-    setAction(today ? getActionForCheckin(today.id) : undefined);
-  }, []);
-
-  const report = buildDailyReport(checkin, action);
+export default function DailyReport({ checkin, action }: { checkin: Checkin | null; action: ActionSession | null }) {
+  const report = buildDailyReport(checkin ?? undefined, action ?? undefined);
 
   if (!report) {
     return <EmptyReport message="Aucun check-in pour générer le rapport du jour." />;

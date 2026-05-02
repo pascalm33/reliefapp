@@ -78,6 +78,7 @@ export function getRecommendedAction(checkin?: Checkin | null): Recommendation {
 export function buildActionSession(checkin: Checkin, recommendation: Recommendation): ActionSession {
   return {
     id: crypto.randomUUID(),
+    userId: checkin.userId,
     checkinId: checkin.id,
     date: checkin.date,
     metric: recommendation.metric,

@@ -1,50 +1,53 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildActionSession, getRecommendedAction, recommendations } from "@/lib/recommendations";
-import { getCheckins, saveActionSession } from "@/lib/storage";
-import type { ActionSession, Checkin, MetricKey } from "@/types";
+import { getRecommendedAction, recommendations } from "@/lib/recommendations";
+import { saveActionSessionAction } from "@/app/(protected)/app/actions";
+import type { Checkin, MetricKey } from "@/types";
 import { metricLabels } from "@/lib/scoring";
 
-export default function ActionRecommendation() {
+export default function ActionRecommendation({ checkin }: { checkin: Checkin | null }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [latest, setLatest] = useState<Checkin | null>(null);
   const [completed, setCompleted] = useState(false);
-  const [stressAfter, setStressAfter] = useState(4);
-  const [reliefAfter, setReliefAfter] = useState(6);
+  const [stressAfter, setStressAfter] = useState(checkin?.global.stressLevel ?? 4);
+  const [reliefAfter, setReliefAfter] = useState(checkin?.global.reliefLevel ?? 6);
   const [helped, setHelped] = useState(true);
   const [note, setNote] = useState("");
-
-  useEffect(() => {
-    setLatest(getCheckins()[0] ?? null);
-  }, []);
+  const [error, setError] = useState("");
 
   const recommendation = useMemo(() => {
     const forcedMetric = params.get("metric") as MetricKey | null;
     if (forcedMetric && recommendations[forcedMetric]) return recommendations[forcedMetric];
-    return getRecommendedAction(latest);
-  }, [latest, params]);
+    return getRecommendedAction(checkin);
+  }, [checkin, params]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!latest) return;
-    const base = buildActionSession(latest, recommendation);
-    const action: ActionSession = {
-      ...base,
-      completed: true,
-      stressAfter,
-      reliefAfter,
-      helped,
-      note
-    };
-    saveActionSession(action);
-    setCompleted(true);
-    setTimeout(() => router.push("/daily-report"), 650);
+    if (!checkin) return;
+    setError("");
+    try {
+      await saveActionSessionAction({
+        checkinId: checkin.id,
+        date: checkin.date,
+        metric: recommendation.metric,
+        actionName: recommendation.actionName,
+        completed: true,
+        stressBefore: checkin.global.stressLevel,
+        stressAfter,
+        reliefAfter,
+        helped,
+        note
+      });
+      setCompleted(true);
+      setTimeout(() => router.push("/app/daily-report"), 650);
+    } catch {
+      setError("Impossible d’enregistrer l’action pour le moment.");
+    }
   }
 
-  if (!latest) {
+  if (!checkin) {
     return (
       <section className="rounded-3xl bg-white p-6 shadow-soft">
         <p className="text-lg font-semibold text-ink">Commence par un check-in.</p>
@@ -109,6 +112,7 @@ export default function ActionRecommendation() {
           J’ai fait l’action
         </button>
         {completed ? <p className="mt-3 text-center text-sm font-medium text-leaf">Action enregistrée.</p> : null}
+        {error ? <p className="mt-3 rounded-2xl bg-coral/10 p-3 text-sm text-ink/75">{error}</p> : null}
       </form>
     </section>
   );
