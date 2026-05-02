@@ -11,8 +11,27 @@ Current infrastructure is:
 Required environments:
 
 - `dev`
-- `staging`
-- `prod`
+- `production`
+
+The current Supabase project is configured as development:
+
+```text
+https://kioycqthyfvsurpciyhp.supabase.co
+```
+
+Project ref:
+
+```text
+kioycqthyfvsurpciyhp
+```
+
+Create a separate Supabase project for production, then update:
+
+```text
+infra/environments/production.json
+```
+
+Do not reuse the development database for production traffic.
 
 Required variables:
 
@@ -26,6 +45,7 @@ Generate example env file:
 
 ```bash
 npm run infra:generate -- dev
+npm run infra:generate -- production
 ```
 
 Validation:
