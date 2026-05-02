@@ -217,3 +217,64 @@ Configurer en production :
 - domaines autorises dans Supabase Auth
 
 Le projet ne contient pas de secrets reels. Ne jamais commiter de `.env.local`.
+
+## Deploiement automatique
+
+Le projet est une application Next.js App Router avec Supabase SSR, proxy/middleware de session et server actions. Il ne peut donc pas etre publie correctement sur GitHub Pages, qui sert uniquement des fichiers statiques. Forcer `output: "export"` casserait les routes protegees, le callback auth, les server actions et la gestion de session.
+
+Le deploiement gratuit configure dans ce repo utilise Cloudflare Workers via OpenNext :
+
+- workflow : `.github/workflows/deploy.yml`
+- branche declencheuse : `main`
+- lancement manuel possible : onglet GitHub Actions > Deploy production > Run workflow
+- build/deploiement : `npm run deploy:cloudflare`
+- cible gratuite : Cloudflare Workers
+
+Avant de merger, verifier localement :
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm run build:cloudflare
+```
+
+### Configuration GitHub
+
+Dans le repo GitHub, ajouter ces secrets :
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+
+Ajouter ces variables de repository ou d'environnement :
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Le token Cloudflare doit avoir le minimum de droits necessaires pour deployer le Worker du projet. Ne pas utiliser de token personnel large.
+
+### Verification du deploiement
+
+Apres un push ou merge sur `main` :
+
+1. Ouvrir l'onglet GitHub `Actions`.
+2. Selectionner `Deploy production`.
+3. Verifier que les etapes `Install dependencies`, `Lint`, `Test`, puis `Build and deploy to Cloudflare Workers` sont vertes.
+4. Verifier l'URL `*.workers.dev` ou le domaine configure dans Cloudflare.
+
+### GitHub Pages
+
+Si le projet devient un site statique sans SSR, middleware, route handlers ni server actions, GitHub Pages pourra etre utilise. Dans ce cas :
+
+1. Configurer `output: "export"` dans `next.config.mjs`.
+2. Publier le dossier `out`.
+3. Dans GitHub : `Settings > Pages > Build and deployment > Source: GitHub Actions`.
+
+Ce n'est pas active pour l'application actuelle afin d'eviter un deploiement incomplet.
+
+### Domaine personnalise
+
+Pour un domaine personnalise, le configurer dans Cloudflare Workers routes/domains, puis ajouter l'URL publique dans Supabase Auth :
+
+- Site URL
+- Redirect URLs incluant `/auth/callback`
