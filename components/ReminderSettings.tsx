@@ -1,38 +1,46 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { getReminderSettings, saveReminderSettings } from "@/lib/storage";
-import type { ReminderSettings as ReminderSettingsType } from "@/types";
+import { FormEvent, useState } from "react";
+import { updateProfileAction } from "@/app/(protected)/app/actions";
+import type { Profile } from "@/types";
 
-export default function ReminderSettings() {
-  const [settings, setSettings] = useState<ReminderSettingsType>({ enabled: false, time: "21:30" });
+export default function ReminderSettings({ profile }: { profile: Profile }) {
+  const [settings, setSettings] = useState({ enabled: profile.reminderEnabled, time: profile.reminderTime });
   const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    setSettings(getReminderSettings());
-  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const next = { ...settings, enabled: true };
-    saveReminderSettings(next);
-    setSettings(next);
+    await updateProfileAction({
+      firstName: profile.firstName,
+      mainGoal: profile.mainGoal,
+      reminderEnabled: settings.enabled,
+      reminderTime: settings.time
+    });
 
-    if ("Notification" in window) {
+    if (settings.enabled && "Notification" in window) {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
-        new Notification("C’est l’heure de ton check-in Relief");
+        new Notification("C’est l’heure de ton check-in Stress Relief");
         setStatus("Notifications activées. Le rappel est aussi affiché dans l’app.");
         return;
       }
     }
-    setStatus("Rappel configuré dans l’app.");
+    setStatus(settings.enabled ? "Rappel configuré dans l’app." : "Rappel désactivé.");
   }
 
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold text-ink">Rappel journalier</h2>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <label className="flex items-center justify-between rounded-2xl bg-mist px-4 py-3">
+          <span className="text-sm font-semibold text-ink">Activer le rappel</span>
+          <input
+            type="checkbox"
+            checked={settings.enabled}
+            onChange={(event) => setSettings((current) => ({ ...current, enabled: event.target.checked }))}
+            className="h-5 w-5 accent-leaf"
+          />
+        </label>
         <label className="block">
           <span className="text-sm font-medium text-ink/70">Heure de rappel</span>
           <input
@@ -43,7 +51,7 @@ export default function ReminderSettings() {
           />
         </label>
         <button type="submit" className="w-full rounded-2xl bg-leaf px-5 py-4 font-semibold text-white">
-          Activer le rappel
+          Sauvegarder le rappel
         </button>
       </form>
       {settings.enabled ? (

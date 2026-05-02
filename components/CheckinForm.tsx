@@ -1,13 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { calculateDailyScores } from "@/lib/scoring";
-import { saveCheckin } from "@/lib/storage";
-import { toDateKey } from "@/lib/dates";
-import type { Checkin } from "@/types";
+import { FormEvent, useState, useTransition } from "react";
+import { saveCheckinAction } from "@/app/(protected)/app/actions";
+import type { CheckinInput } from "@/types";
 
-type FormState = Omit<Checkin, "id" | "date" | "createdAt" | "scores">;
+type FormState = Omit<CheckinInput, "date">;
 
 const initialState: FormState = {
   sleep: { awakenings: 1, awakeMinutes: 20, sleepQuality: 6, mainCause: "pensées" },
@@ -36,6 +34,8 @@ const initialState: FormState = {
 
 export default function CheckinForm() {
   const [form, setForm] = useState<FormState>(initialState);
+  const [error, setError] = useState("");
+  const [pending, startTransition] = useTransition();
   const router = useRouter();
 
   function updateSection<Section extends keyof FormState>(
@@ -50,18 +50,16 @@ export default function CheckinForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const base = {
-      id: crypto.randomUUID(),
-      date: toDateKey(),
-      createdAt: new Date().toISOString(),
-      ...form
-    };
-    const checkin: Checkin = {
-      ...base,
-      scores: calculateDailyScores(base)
-    };
-    saveCheckin(checkin);
-    router.push("/action");
+    setError("");
+    startTransition(async () => {
+      try {
+        await saveCheckinAction(form);
+        router.push("/app/action");
+        router.refresh();
+      } catch {
+        setError("Impossible d’enregistrer le check-in pour le moment.");
+      }
+    });
   }
 
   const digestionAlert = form.digestion.healthAlert !== "none";
@@ -124,8 +122,9 @@ export default function CheckinForm() {
       </FormBlock>
 
       <button type="submit" className="w-full rounded-2xl bg-leaf px-5 py-4 text-base font-semibold text-white shadow-soft">
-        Enregistrer mon check-in
+        {pending ? "Enregistrement..." : "Enregistrer mon check-in"}
       </button>
+      {error ? <p className="rounded-2xl bg-coral/10 p-3 text-sm text-ink/75">{error}</p> : null}
     </form>
   );
 }

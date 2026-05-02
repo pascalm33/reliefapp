@@ -8,3 +8,7 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 tsconfig.tsbuildinfo
+coverage
+playwright-report
+test-results
+.env.local.example

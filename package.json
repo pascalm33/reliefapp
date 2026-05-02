@@ -6,22 +6,49 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run test/integration",
+    "test:integration:watch": "vitest test/integration",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "audit:deps": "node scripts/audit-deps.mjs",
+    "audit:unused": "npx knip --production",
+    "audit:secrets": "node scripts/check-secrets.mjs",
+    "infra:check": "sh scripts/infra/check.sh",
+    "infra:generate": "tsx scripts/infra/generate-env.ts",
+    "infra:validate": "tsx scripts/infra/validate-env.ts",
+    "infra:plan": "sh scripts/infra/plan.sh",
+    "infra:diff": "sh scripts/infra/diff.sh",
+    "infra:apply": "sh scripts/infra/apply.sh",
+    "infra:destroy": "sh scripts/infra/destroy.sh",
+    "quality": "node scripts/quality.mjs",
+    "quality:ci": "node scripts/quality.mjs --ci"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
+    "lucide-react": "^1.14.0",
     "next": "^16.2.4",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "20.14.10",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "10.4.19",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.5",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
     "postcss": "^8.5.10",
     "tailwindcss": "3.4.4",
-    "typescript": "5.5.3"
+    "tsx": "^4.21.0",
+    "typescript": "5.5.3",
+    "vitest": "^4.1.5"
   }
 }

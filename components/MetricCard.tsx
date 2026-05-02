@@ -35,7 +35,7 @@ export default function MetricCard({
         </span>
       </div>
       <Link
-        href={`/action?metric=${metric}`}
+        href={`/app/action?metric=${metric}`}
         className="mt-4 block rounded-2xl bg-ink px-4 py-3 text-center text-sm font-semibold text-white"
       >
         Agir maintenant

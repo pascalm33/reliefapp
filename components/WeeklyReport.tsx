@@ -1,22 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { buildWeeklyReport } from "@/lib/reports";
 import { formatDisplayDate } from "@/lib/dates";
-import { getActions, getCheckins } from "@/lib/storage";
 import { metricLabels } from "@/lib/scoring";
 import type { ActionSession, Checkin } from "@/types";
 import { EmptyReport, ListCard } from "@/components/DailyReport";
 
-export default function WeeklyReport() {
-  const [checkins, setCheckins] = useState<Checkin[]>([]);
-  const [actions, setActions] = useState<ActionSession[]>([]);
-
-  useEffect(() => {
-    setCheckins(getCheckins());
-    setActions(getActions());
-  }, []);
-
+export default function WeeklyReport({ checkins, actions }: { checkins: Checkin[]; actions: ActionSession[] }) {
   const report = buildWeeklyReport(checkins, actions);
 
   if (!report) {
