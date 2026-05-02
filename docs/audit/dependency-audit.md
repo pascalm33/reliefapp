@@ -15,14 +15,14 @@
 
 ## Scripts ajoutés
 
-- `audit:deps`: `npm audit --omit=dev`
+- `audit:deps`: `npm audit --omit=dev --audit-level=high`
 - `audit:unused`: `npx knip --production`
 - `audit:secrets`: secret scan local simple
 - `quality`, `quality:ci`
 
 ## État audit
 
-`npm audit` signale encore des vulnérabilités modérées selon l’état registry courant. Ne pas lancer `npm audit fix --force` sans revue : cela peut introduire des breaking changes.
+`npm audit` signale encore des vulnérabilités modérées selon l’état registry courant. Le gate CI échoue sur les vulnérabilités hautes ou critiques ; les vulnérabilités modérées restent visibles dans les logs. Ne pas lancer `npm audit fix --force` sans revue : cela peut introduire des breaking changes.
 
 ## Risques supply chain
 

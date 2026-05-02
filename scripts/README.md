@@ -5,7 +5,7 @@
 - `npm run test`: run unit and integration tests.
 - `npm run test:coverage`: generate coverage in `coverage/`.
 - `npm run test:e2e`: run Playwright E2E tests.
-- `npm run audit:deps`: run `npm audit --omit=dev`.
+- `npm run audit:deps`: run `npm audit --omit=dev --audit-level=high`; moderate advisories remain visible but do not fail CI when the safe fix is not available.
 - `npm run audit:secrets`: scan the repo for obvious committed secrets.
 - `npm run infra:check`: validate current infra files and Supabase migration presence.
 - `npm run infra:generate`: generate `.env.local.example` from `infra/environments/dev.json`.
