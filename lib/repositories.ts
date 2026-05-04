@@ -10,9 +10,17 @@ import type {
   Checkin,
   CheckinInput,
   CheckinRow,
+  DailyCheckin,
+  DailyCheckinRow,
+  DailySignalEntry,
+  DailySignalEntryRow,
   Database,
   MainGoal,
-  Profile
+  MealEntry,
+  MealEntryInput,
+  MealEntryRow,
+  Profile,
+  SignalEntryInput
 } from "@/types";
 
 type DbClient = SupabaseClient<Database>;
@@ -99,6 +107,41 @@ export function mapActionSession(row: ActionSessionRow): ActionSession {
     helped: row.helped ?? undefined,
     note: row.note ?? undefined,
     createdAt: row.created_at
+  };
+}
+
+export function mapDailyCheckin(row: DailyCheckinRow): DailyCheckin {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    date: row.date,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export function mapDailySignalEntry(row: DailySignalEntryRow): DailySignalEntry {
+  return {
+    id: row.id,
+    checkinId: row.checkin_id,
+    signalKey: row.signal_key as DailySignalEntry["signalKey"],
+    value: row.value,
+    note: row.note,
+    completedAt: row.completed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export function mapMealEntry(row: MealEntryRow): MealEntry {
+  return {
+    id: row.id,
+    checkinId: row.checkin_id,
+    mealTime: row.meal_time.slice(0, 5),
+    mealType: normalizeMealType(row.meal_type),
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }
 
@@ -200,6 +243,94 @@ export async function getTodayCheckin(userId: string, supabase?: DbClient) {
     .maybeSingle();
   if (error) throw error;
   return data ? mapCheckin(data) : null;
+}
+
+export async function getOrCreateDailyCheckin(userId: string, date = toDateKey(), supabase?: DbClient) {
+  const client = supabase ?? (await createServerClient());
+  const { data, error } = await client
+    .from("daily_checkins")
+    .upsert(
+      { user_id: userId, date, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,date" }
+    )
+    .select("*")
+    .single();
+  if (error) throw error;
+  return mapDailyCheckin(data);
+}
+
+export async function getDailySignalState(userId: string, date = toDateKey(), supabase?: DbClient) {
+  const client = supabase ?? (await createServerClient());
+  const checkin = await getOrCreateDailyCheckin(userId, date, client);
+  const [{ data: entries, error: entriesError }, { data: meals, error: mealsError }] = await Promise.all([
+    client.from("daily_signal_entries").select("*").eq("checkin_id", checkin.id),
+    client.from("meal_entries").select("*").eq("checkin_id", checkin.id).order("meal_time", { ascending: true })
+  ]);
+  if (entriesError) throw entriesError;
+  if (mealsError) throw mealsError;
+  return {
+    checkin,
+    entries: (entries ?? []).map(mapDailySignalEntry),
+    meals: (meals ?? []).map(mapMealEntry)
+  };
+}
+
+export async function saveDailySignalEntry(
+  userId: string,
+  input: SignalEntryInput,
+  date = toDateKey(),
+  supabase?: DbClient
+) {
+  const client = supabase ?? (await createServerClient());
+  const checkin = await getOrCreateDailyCheckin(userId, date, client);
+  const timestamp = new Date().toISOString();
+  const { data, error } = await client
+    .from("daily_signal_entries")
+    .upsert(
+      {
+        checkin_id: checkin.id,
+        signal_key: input.signalKey,
+        value: input.value,
+        note: input.note || null,
+        completed_at: timestamp,
+        updated_at: timestamp
+      },
+      { onConflict: "checkin_id,signal_key" }
+    )
+    .select("*")
+    .single();
+  if (error) throw error;
+  return mapDailySignalEntry(data);
+}
+
+export async function saveMealEntry(
+  userId: string,
+  input: MealEntryInput & { id?: string },
+  date = toDateKey(),
+  supabase?: DbClient
+) {
+  const client = supabase ?? (await createServerClient());
+  const checkin = await getOrCreateDailyCheckin(userId, date, client);
+  const row = {
+    checkin_id: checkin.id,
+    meal_time: input.mealTime,
+    meal_type: input.mealType ?? null,
+    content: input.content,
+    updated_at: new Date().toISOString()
+  };
+  const query = input.id
+    ? client.from("meal_entries").update(row).eq("id", input.id).select("*").single()
+    : client.from("meal_entries").insert(row).select("*").single();
+  const { data, error } = await query;
+  if (error) throw error;
+  return mapMealEntry(data);
+}
+
+export async function deleteMealEntry(userId: string, mealId: string, supabase?: DbClient) {
+  const client = supabase ?? (await createServerClient());
+  void userId;
+  const { error } = await client.from("meal_entries").delete().eq("id", mealId);
+  if (error) throw error;
 }
 
 export async function getCheckinsForLast7Days(userId: string, supabase?: DbClient) {
@@ -308,4 +439,11 @@ function normalizeHealthAlert(value: string): Checkin["digestion"]["healthAlert"
   return value === "strong_pain" || value === "blood" || value === "more_than_3_days" || value === "none"
     ? value
     : "none";
+}
+
+function normalizeMealType(value: string | null): MealEntry["mealType"] {
+  if (value === "breakfast" || value === "lunch" || value === "dinner" || value === "snack" || value === "other") {
+    return value;
+  }
+  return null;
 }

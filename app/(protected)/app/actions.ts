@@ -4,13 +4,16 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import {
+  deleteMealEntry,
   saveActionSession,
   saveCheckin,
+  saveDailySignalEntry,
+  saveMealEntry,
   signOut,
   updateProfile
 } from "@/lib/repositories";
 import { insertDemoDataForUser } from "@/lib/demo-data";
-import type { ActionSessionInput, CheckinInput, MainGoal } from "@/types";
+import type { ActionSessionInput, CheckinInput, MainGoal, MealEntryInput, SignalEntryInput } from "@/types";
 
 export async function signOutAction() {
   await signOut();
@@ -29,6 +32,26 @@ export async function saveActionSessionAction(input: ActionSessionInput) {
   const action = await saveActionSession(user.id, input);
   revalidatePath("/app", "layout");
   return action;
+}
+
+export async function saveDailySignalEntryAction(input: SignalEntryInput) {
+  const user = await requireUser();
+  const entry = await saveDailySignalEntry(user.id, input);
+  revalidatePath("/app", "layout");
+  return entry;
+}
+
+export async function saveMealEntryAction(input: MealEntryInput & { id?: string }) {
+  const user = await requireUser();
+  const meal = await saveMealEntry(user.id, input);
+  revalidatePath("/app", "layout");
+  return meal;
+}
+
+export async function deleteMealEntryAction(mealId: string) {
+  const user = await requireUser();
+  await deleteMealEntry(user.id, mealId);
+  revalidatePath("/app", "layout");
 }
 
 export async function updateProfileAction(input: {

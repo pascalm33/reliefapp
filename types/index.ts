@@ -1,5 +1,71 @@
 export type MetricKey = "sleep" | "digestion" | "procrastination" | "scroll" | "aggression";
 
+export type SignalKey =
+  | "sleep_awakenings"
+  | "procrastination"
+  | "digestion"
+  | "scroll"
+  | "aggression"
+  | "global_stress"
+  | "energy"
+  | "mood"
+  | "food";
+
+export type SignalValue = string | number | boolean | Record<string, string | number | boolean | null>;
+
+export type SignalDefinition = {
+  key: SignalKey;
+  label: string;
+  description: string;
+  valueLabel: string;
+  inputType: "number" | "scale" | "text" | "meal";
+  unit?: string;
+};
+
+export type DailyCheckin = {
+  id: string;
+  userId: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DailySignalEntry = {
+  id: string;
+  checkinId: string;
+  signalKey: SignalKey;
+  value: SignalValue;
+  note: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  date?: string;
+};
+
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack" | "other";
+
+export type MealEntry = {
+  id: string;
+  checkinId: string;
+  mealTime: string;
+  mealType: MealType | null;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SignalEntryInput = {
+  signalKey: SignalKey;
+  value: SignalValue;
+  note?: string | null;
+};
+
+export type MealEntryInput = {
+  mealTime: string;
+  mealType?: MealType | null;
+  content: string;
+};
+
 export type MainGoal =
   | "better_sleep"
   | "reduce_scroll"
@@ -170,6 +236,32 @@ export type Database = {
         Update: Partial<ActionSessionRow>;
         Relationships: [];
       };
+      daily_checkins: {
+        Row: DailyCheckinRow;
+        Insert: Partial<DailyCheckinRow> & { user_id: string; date: string };
+        Update: Partial<DailyCheckinRow>;
+        Relationships: [];
+      };
+      daily_signal_entries: {
+        Row: DailySignalEntryRow;
+        Insert: Partial<DailySignalEntryRow> & {
+          checkin_id: string;
+          signal_key: string;
+          value: SignalValue;
+        };
+        Update: Partial<DailySignalEntryRow>;
+        Relationships: [];
+      };
+      meal_entries: {
+        Row: MealEntryRow;
+        Insert: Partial<MealEntryRow> & {
+          checkin_id: string;
+          meal_time: string;
+          content: string;
+        };
+        Update: Partial<MealEntryRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -230,4 +322,33 @@ export type ActionSessionRow = {
   helped: boolean | null;
   note: string | null;
   created_at: string;
+};
+
+export type DailyCheckinRow = {
+  id: string;
+  user_id: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DailySignalEntryRow = {
+  id: string;
+  checkin_id: string;
+  signal_key: string;
+  value: SignalValue;
+  note: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MealEntryRow = {
+  id: string;
+  checkin_id: string;
+  meal_time: string;
+  meal_type: string | null;
+  content: string;
+  created_at: string;
+  updated_at: string;
 };
